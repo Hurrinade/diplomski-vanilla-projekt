@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/assets/css/index.css" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="app">
+      <div class="main container" id="main-container">
+        <div class="backdrop" id="backdrop" style="display: none"></div>
+        <div class="main-panes">
+          <data-pane id="vrapce" location="Vrapce"></data-pane>
+          <chart-buttons id="chart-buttons"></chart-buttons>
+          <data-pane id="mlinovi" location="Mlinovi">
+            <div class="cool-div">Cool HTML Div</div>
+          </data-pane>
+          <radars-pane />
+        </div>
+        <forecast-pane></forecast-pane>
+        <ensi-pane></ensi-pane>
+      </div>
+    </div>
+    <script type="module">
+      import {
+        DataPaneWebComponent,
+        ChartButtonsWebComponent,
+        RadarsPaneWebComponent,
+        ForecastPaneWebComponent,
+        EnsiPaneWebComponent,
+        ChartComponentWebComponent,
+      } from "./node_modules/web-components/dist/index.js";
+
+      customElements.define("data-pane", DataPaneWebComponent);
+      customElements.define("chart-buttons", ChartButtonsWebComponent);
+      customElements.define("radars-pane", RadarsPaneWebComponent);
+      customElements.define("forecast-pane", ForecastPaneWebComponent);
+      customElements.define("ensi-pane", EnsiPaneWebComponent);
+      customElements.define("chart-component", ChartComponentWebComponent);
+
+      let chartType = "";
+      let modalActive = false;
+
+      /* Hide chart when clicked outside of it */
+      const handleClickOutside = (event) => {
+        const chartComponent = document.querySelector("chart-component");
+        const mainContainer = document.getElementById("main-container");
+
+        if (
+          modalActive &&
+          chartType &&
+          mainContainer &&
+          mainContainer.contains(event.target) &&
+          chartComponent &&
+          !chartComponent.contains(event.target)
+        ) {
+          chartType = "";
+          modalActive = false;
+          backdrop.style.display = "none";
+          // Remove web component when we dont want to see detailed chart anymore
+
+          chartComponent.parentNode.removeChild(chartComponent);
+        } else if (chartType && !modalActive) {
+          modalActive = true;
+        }
+      };
+      document.addEventListener("click", handleClickOutside);
+
+      // Set default props for components when they render
+      const dataPaneVrapce = document.getElementById("vrapce");
+      const chartButtons = document.getElementById("chart-buttons");
+      const openChart = (emit) => {
+        chartType = emit.detail[0];
+
+        if (chartType) {
+          // If there is chart type show backdrop
+          const backdrop = document.getElementById("backdrop");
+          backdrop.style.display = "flex";
+
+          // Show web component when we want to see detailed chart
+          const chartComponent = document.createElement("chart-component");
+          // Send property for which chart we want to show depending on event data that we got
+          chartComponent.chartType = chartType;
+          chartComponent.classList.add("chart-modal");
+          backdrop.appendChild(chartComponent);
+        }
+      };
+
+      // Add listener for events on this component
+      chartButtons.addEventListener("chart", openChart);
+
+      dataPaneVrapce.styles = [
+        "/assets/css/dataPane.css",
+        "/assets/css/simplePane.css",
+      ];
+    </script>
+  </body>
+</html>
